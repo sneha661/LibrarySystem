@@ -1,0 +1,12 @@
+{% extends 'bookms/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Delete Book{% endblock %}
+
+{% block content %}
+<h1>Are you sure you want to delete.... "{{ book.name }}"?</h1>
+    <form method="post" action="{% url 'bookms:book_delete' book.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Delete</button>
+        <a href="{% url 'bookms:book_list' %}" class="btn btn-secondary">Cancel</a>  
+    </form>
+{% endblock %}

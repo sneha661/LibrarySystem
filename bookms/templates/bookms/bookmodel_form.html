@@ -1,0 +1,15 @@
+
+{% extends 'bookms/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Create Book{% endblock %}
+
+{% block content %}
+    <h1>Create Book</h1>
+    <form method="post" action="{% url 'bookms:book-create' %}">
+        {% csrf_token %}
+        {{ form|crispy }}  
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a href="{% url 'bookms:book_list' %}" class="btn btn-secondary ">Back to Book List</a>
+    </form>
+    
+{% endblock %}

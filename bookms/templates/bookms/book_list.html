@@ -1,0 +1,16 @@
+{% extends 'bookms/base.html' %}
+{% load django_tables2 %} 
+
+{% block title %}Book List{% endblock %}
+
+{% block content %}
+<h1>List of Books</h1>
+{% if book_table %}
+    {% render_table book_table %}
+{% else %}
+    <p>No books available.</p>
+
+    
+{% endif %}
+<a href="{% url 'bookms:book-create' %}" class="btn btn-primary">Add New Book</a>
+{% endblock %}

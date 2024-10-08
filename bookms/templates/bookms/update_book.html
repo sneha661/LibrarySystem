@@ -1,0 +1,13 @@
+{% extends 'bookms/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Update Book{% endblock %}
+
+{% block content %}
+    <h1>Update Book</h1>
+    <form method="post" action="{% url 'bookms:book_update' book.pk %}">
+        {% csrf_token %}
+        {{ form|crispy }}  
+        <button type="submit" class="btn btn-primary">Update</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'bookms/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Borrow Books{% endblock %}
+
+<h1>{{ book_copy.book.name }}</h1>
+<p>Author: {{ book_copy.book.author }}</p>
+<p>Status: {{ book_copy.status }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Borrow this book</button>
+</form>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+    
+{% endblock %}
