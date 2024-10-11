@@ -5,4 +5,3 @@ from .models import *
 # Register your models here.
 
 admin.site.register(BookModel)
-admin.site.register(BookCopy)
