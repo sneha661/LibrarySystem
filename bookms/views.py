@@ -1,15 +1,17 @@
-from django.shortcuts import render,redirect,get_object_or_404
-from django.views.generic import CreateView,UpdateView,DeleteView,DetailView
-from django.urls import reverse_lazy,reverse
+from django.shortcuts import render,get_object_or_404
+from django.views.generic import CreateView,UpdateView,DeleteView,ListView,TemplateView,DetailView
+from django.urls import reverse_lazy
 
-from .models import BookModel
-from .form import BookForm 
+from .models import BookModel,Borrow
+from .Forms.form import BookForm
+from .Forms.borrow_form import BorrowForm
 from .table import BookTable
+from django.contrib.auth.models import User
 
-from datetime import date, timedelta
-from .models import BookCopy
-from django.contrib import messages
-from django.utils import timezone
+
+
+
+
 # Create your views here.
 
 class AddBookView(CreateView):
@@ -19,16 +21,23 @@ class AddBookView(CreateView):
     success_url = reverse_lazy('bookms:book_list')
 
 
-def navbar(request):
-    return render(request, 'bookms/navbar.html')
+class NavbarView(CreateView):
+    def get(self, request):
+        return render(request, 'bookms/navbar.html')
+    
 
+class BookListView(ListView):
+    model = BookModel
+    template_name = 'bookms/book_list.html'  
+    context_object_name = 'book_table'  
 
-def book_list(request):
-    books = BookModel.objects.all()  
-    book_table = BookTable(books)  
-    return render(request, 'bookms/book_list.html', {
-        'book_table': book_table 
-    })
+    def get_queryset(self):
+        return BookModel.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['book_table'] = BookTable(self.get_queryset())
+        return context
 
 
 class BookUpdateView(UpdateView):
@@ -47,32 +56,73 @@ class BookDeleteView(DeleteView):
     template_name = 'bookms/delete_book.html'
     success_url = reverse_lazy('bookms:book_list')
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['book'] = self.get_object()
         return context
+    
 
-class BookBorrowView(DetailView):
-    model = BookCopy
-    template_name = 'book_detail.html'  
-    context_object_name = 'book_copy'
+
+class BorrowBookView(CreateView):
+    model = Borrow
+    form_class = BorrowForm 
+    template_name = 'bookms/borrow_book.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        book_id = self.kwargs.get('book_id')
+        initial['book'] = get_object_or_404(BookModel, id=book_id)
+        return initial
+         
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        book_id = self.kwargs.get('book_id')
+        context['book'] = get_object_or_404(BookModel, id=book_id)
+        return context
+    
+    def get_success_url(self):
+        instance = self.object
+        return reverse_lazy('bookms:borrow_confirm',kwargs={'borrow_id':instance.id})
+    
+
+class ConfirmBookView(CreateView):
+    model=Borrow
+    form_class = BorrowForm 
+    template_name= 'bookms/borrow_details.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['book'] = self.get_object()  
+        borrow_id = self.kwargs.get('borrow_id')
+        context['borrow_entry'] = get_object_or_404(Borrow, id=borrow_id)
+        return context
+    
+
+class BorrowedBooksListView(TemplateView):
+    template_name = 'bookms/borrowed_books_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['users'] = User.objects.all()  
+        context['borrowed_books'] = Borrow.objects.all()  
+        return context
+    
+
+class ReturnBookView(TemplateView):
+    template_name ='bookms/return_book_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         return context
 
-    def post(self, request, *args, **kwargs):
-        book_copy = get_object_or_404(BookCopy, id=self.kwargs['pk'])  # Ensure we get the correct book copy
+    
+class ReturnBookDetailView(DetailView):
+    model = Borrow
+    template_name = 'bookms/return_book_detail.html'
+    context_object_name = 'borrow_entry'
+    pk_url_kwarg = 'borrow_id'
+    
 
-        if book_copy.status == 'available':
-            book_copy.status = 'borrowed'
-            book_copy.borrowed_by = request.user
-            book_copy.due_date = timezone.now().date() + timedelta(days=14)
-            book_copy.save()
-            
-            messages.success(request, f'You have borrowed "{book_copy.book.name}". Due date is {book_copy.due_date}.')
-        else:
-            messages.error(request, 'This book is currently unavailable.')
-        
-        return redirect('bookms:book_list')
+
+
+
