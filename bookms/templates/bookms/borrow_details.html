@@ -1,0 +1,20 @@
+{% extends 'bookms/base.html' %}
+{% block title %}Borrow Confirmation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Borrow Confirmation</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Book Name:</strong> {{ borrow_entry.book.name }}</p>
+            <p><strong>Author:</strong> {{ borrow_entry.book.author }}</p>
+            <p><strong>Borrowed By:</strong> {{ borrow_entry.user.username }}</p>
+            <p><strong>Borrowed Date:</strong> {{ borrow_entry.borrowed_at|date:"Y-m-d" }}</p>
+           
+        </div>
+    </div>
+
+    <a href="{% url 'bookms:book_list' %}" class="btn btn-primary">Back to Book List</a>
+</div>
+{% endblock %}
