@@ -1,0 +1,28 @@
+{% extends 'bookms/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Borrow Book{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Borrow Book: {{ book.name }}</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Author:</strong> {{ book.author }}</p>
+            <p><strong>Price:</strong> ${{ book.price }}</p>
+            <p><strong>Version:</strong> {{ book.version }}</p>
+            <p><strong>Publication Info:</strong> {{ book.publication_info }}</p>
+            <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}  
+    
+        <button type="submit" class="btn btn-success">Confirm Borrow</button>
+    </form>
+</div>
+
+
+{% endblock %}
