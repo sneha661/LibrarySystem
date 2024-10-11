@@ -15,11 +15,15 @@ class BookModel(models.Model):
         return self.name
     
 
-class BookCopy(models.Model):
+class Borrow(models.Model):
     book = models.ForeignKey(BookModel, on_delete=models.CASCADE)
-    status = models.CharField(max_length=10, choices=[('available', 'Available'), ('borrowed', 'Borrowed'), ('lost', 'Lost'), ('damaged', 'Damaged')], default='available')
-    borrowed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
-    due_date = models.DateField(null=True, blank=True)
+    borrowed_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    other_details = models.TextField(blank=True, null=True)  
+    borrowed_at = models.DateTimeField(auto_now_add=True)
+    returned = models.BooleanField(default=False) 
+    returned_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return self.book
+        return f"Book {self.book.name} borrowed by {self.borrowed_by}"
+    
+
