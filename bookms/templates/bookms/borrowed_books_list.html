@@ -1,0 +1,54 @@
+{% extends 'bookms/base.html' %}
+{% block title %}Borrowed Books List{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Borrowed Books</h2>
+    {% if borrowed_books %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Book Name</th>
+                <th>Borrowed By</th>
+                <th>Borrowed On</th>
+                <th>Return Date</th>  
+                <th>Status</th>
+                <th>Action</th>  
+            </tr>
+        </thead>
+        <tbody>
+            {% for borrow in borrowed_books %}
+            <tr>
+                <td>{{ borrow.book.name }}</td>
+                <td>{{ borrow.borrowed_by.username }}</td>
+                <td>{{ borrow.borrowed_at|date:"Y-m-d H:i:s" }}</td>
+                <td>
+                    {% if borrow.returned %}
+                        {{ borrow.returned_at|date:"Y-m-d H:i:s" }} 
+                    {% else %}
+                        <span class="text-muted">Not Returned</span>  
+                    {% endif %}
+                </td>
+                <td>
+                    {% if borrow.returned %}
+                        <span class="badge bg-success">Returned</span>
+                    {% else %}
+                        <span class="badge bg-warning">Not Returned</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not borrow.returned %}
+                        <a href="{% url 'bookms:return_book_detail' borrow.id %}" class="btn btn-primary">Return Book</a>
+                    {% else %}
+                        <span class="text-muted">Already Returned</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No borrowed books available.</p>
+    {% endif %}
+</div>
+{% endblock %}
