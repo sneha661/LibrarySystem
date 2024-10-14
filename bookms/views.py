@@ -1,12 +1,14 @@
-from django.shortcuts import render,get_object_or_404
+from django.shortcuts import render,get_object_or_404,redirect
 from django.views.generic import CreateView,UpdateView,DeleteView,ListView,TemplateView,DetailView
 from django.urls import reverse_lazy
 
 from .models import BookModel,Borrow
+from .Forms.book_status_form import BookStatusForm
 from .Forms.form import BookForm
 from .Forms.borrow_form import BorrowForm
 from .table import BookTable
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 
 
@@ -103,8 +105,16 @@ class BorrowedBooksListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['users'] = User.objects.all()  
-        context['borrowed_books'] = Borrow.objects.all()  
+        context['users'] = User.objects.filter(borrow__isnull=False).distinct()
+        user_id = self.request.GET.get('user_id')
+        
+        if user_id:
+            selected_user = get_object_or_404(User, id=user_id)
+            context['selected_user'] = selected_user
+            context['borrowed_books'] = Borrow.objects.filter(borrowed_by=selected_user)
+        else:
+            context['borrowed_books'] = None
+
         return context
     
 
@@ -121,8 +131,46 @@ class ReturnBookDetailView(DetailView):
     template_name = 'bookms/return_book_detail.html'
     context_object_name = 'borrow_entry'
     pk_url_kwarg = 'borrow_id'
+
+
+class MarkBookStatusView(UpdateView):
+    model = BookModel
+    template_name = 'bookms/return_book_detail.html'
+    context_object_name = 'borrow_entry'
+    form_class = BookStatusForm
+
+    def get_success_url(self):
+        
+        return reverse('bookms:remove_book')  
+
+    def form_valid(self, form):
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.get_form()
+        return context
+   
+class RemoveBookView(DeleteView):
+    model = BookModel
+    template_name = 'bookms/remove_book_confirm.html'
+    success_url = reverse_lazy('bookms:book_list')
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(BookModel, id=self.kwargs['book_id'])
     
 
+class RemoveBookConfirmationView(DeleteView):
+    model = BookModel  
+    template_name = 'bookms/remove_book_confirm.html' 
+    success_url = reverse_lazy('bookms:book_list')
 
+    def get_object(self, queryset=None):
+        """Override to get the book object to be deleted."""
+        return get_object_or_404(BookModel, id=self.kwargs['book_id'])
 
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['book'] = self.get_object() 
+        return context
+    
